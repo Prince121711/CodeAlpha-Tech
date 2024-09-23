@@ -1,94 +1,98 @@
+const audio = document.getElementById('audio');
+const playPauseBtn = document.getElementById('playPauseBtn');
+const progressBar = document.getElementById('progress-bar');
+const currentTimeEl = document.getElementById('currentTime');
+const durationEl = document.getElementById('duration');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const playlist = document.getElementById('playlist');
+const songTitle = document.getElementById('song-title');
+const thumbnail = document.getElementById('thumbnail');
 
-body {
-font-family: Arial, sans-serif;
-background-color: #f4f4f4;
-display: flex;
-justify-content: center;
-align-items: center;
-height: 100vh;
-margin: 0;
+const songs = [
+    { title: 'Until I Found Her', src: 'song1.mp3', thumbnail:'song1.jpg' },
+    { title: 'Perfect', src: 'song2.mp3', thumbnail: 'song2.jpg' },
+    { title: 'hope', src: 'song3.mp3', thumbnail: 'song3.jpg' }
+];
+
+let songIndex = 0;
+let isPlaying = false;
+
+
+function loadSong(index) {
+    audio.src = songs[index].src;
+    songTitle.textContent = songs[index].title;
+    thumbnail.src = songs[index].thumbnail;
+    updatePlaylistUI(index);
 }
 
-.player {
-background-color: #fff;
-padding: 20px;
-border-radius: 10px;
-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-text-align: center;
-width: 300px;
+
+function togglePlayPause() {
+    if (isPlaying) {
+        audio.pause();
+        playPauseBtn.textContent = 'Play';
+    } else {
+        audio.play();
+        playPauseBtn.textContent = 'Pause';
+    }
+    isPlaying = !isPlaying;
 }
 
-.song-info {
-margin-bottom: 20px;
+audio.addEventListener('timeupdate', () => {
+    const { currentTime, duration } = audio;
+    progressBar.style.width = `${(currentTime / duration) * 100}%`;
+    currentTimeEl.textContent = formatTime(currentTime);
+    durationEl.textContent = formatTime(duration);
+});
+
+
+function formatTime(time) {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 }
 
-.song-info img {
-width: 100%;
-border-radius: 10px;
+
+function nextSong() {
+    songIndex = (songIndex + 1) % songs.length;
+    loadSong(songIndex);
+    audio.play();
+    playPauseBtn.textContent = 'Pause';
+    isPlaying = true;
 }
 
-.song-info h2 {
-margin: 10px 0 0;
-font-size: 18px;
+
+function prevSong() {
+    songIndex = (songIndex - 1 + songs.length) % songs.length;
+    loadSong(songIndex);
+    audio.play();
+    playPauseBtn.textContent = 'Pause';
+    isPlaying = true;
 }
 
-.controls {
-display: flex;
-align-items: center;
-justify-content: space-between;
-margin-top: 10px;
+
+function updatePlaylistUI(activeIndex) {
+    const items = playlist.querySelectorAll('.song');
+    items.forEach((item, index) => {
+        item.classList.toggle('active', index === activeIndex);
+    });
 }
 
-button {
-background-color: #007bff;
-color: #fff;
-border: none;
-padding: 10px;
-border-radius: 5px;
-cursor: pointer;
-}
 
-button:hover {
-background-color: #0056b3;
-}
+playPauseBtn.addEventListener('click', togglePlayPause);
+nextBtn.addEventListener('click', nextSong);
+prevBtn.addEventListener('click', prevSong);
 
-.progress-container {
-background-color: #ddd;
-border-radius: 5px;
-width: 100%;
-height: 10px;
-margin: 15px 0;
-position: relative;
-}
 
-.progress-bar {
-background-color: #007bff;
-height: 100%;
-width: 0;
-border-radius: 5px;
-}
+loadSong(songIndex);
 
-.time {
-margin-top: 10px;
-font-size: 14px;
-}
 
-.playlist ul {
-list-style: none;
-padding: 0;
-margin-top: 20px;
-}
-
-.playlist li {
-padding: 10px;
-cursor: pointer;
-background-color: #f9f9f9;
-margin: 5px 0;
-border-radius: 5px;
-}
-
-.playlist li:hover, .playlist li.active {
-background-color: #007bff;
-color: #fff;
-}
-
+playlist.addEventListener('click', (e) => {
+    if (e.target.classList.contains('song')) {
+        songIndex = parseInt(e.target.getAttribute('data-index'));
+        loadSong(songIndex);
+        audio.play();
+        playPauseBtn.textContent = 'Pause';
+        isPlaying = true;
+    }
+});
